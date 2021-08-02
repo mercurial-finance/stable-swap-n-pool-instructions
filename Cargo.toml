@@ -1,0 +1,16 @@
+[package]
+name = "mercurial_stable_swap_n_pool_instructions"
+version = "0.1.0"
+edition = "2018"
+license = "WTFPL"
+publish = false
+
+[dependencies]
+solana-program = "1.6.18"
+thiserror = "1.0.24"
+num-derive = "0.3"
+num-traits = "0.2"
+arrayref = "0.3.6"
+
+[lib]
+crate-type = ["lib"]

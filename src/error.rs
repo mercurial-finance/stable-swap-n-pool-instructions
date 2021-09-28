@@ -1,8 +1,5 @@
 use num_derive::FromPrimitive;
-use solana_program::{
-    decode_error::DecodeError,
-    program_error::ProgramError,
-};
+use solana_program::{decode_error::DecodeError, program_error::ProgramError};
 use thiserror::Error;
 
 #[derive(Error, Debug, Copy, Clone, FromPrimitive, Eq, PartialEq)]

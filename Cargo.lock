@@ -446,7 +446,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "mercurial-stable-swap-n-pool-instructions"
+name = "mercurial_stable_swap_n_pool_instructions"
 version = "0.1.0"
 dependencies = [
  "arrayref",

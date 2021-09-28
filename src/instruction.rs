@@ -18,6 +18,17 @@ use crate::state::AdminSettings;
 use crate::utils;
 use crate::PoolParameter;
 
+#[repr(C)]
+#[derive(Debug, PartialEq, Clone)]
+pub enum AdminSetting {
+    SetSwapEnabled(bool),
+    SetAddLiquidityEnabled(bool),
+    SetAmplificationCoefficient(u64),
+    SetFeeNumerator(u64),
+    SetAdminFeeNumerator(u64),
+    SetPrecisionMultipliers(Vec<u64>),
+}
+
 // Instructions for the stable swap.
 #[repr(C)]
 #[derive(Debug, PartialEq, Clone)]
@@ -126,6 +137,16 @@ pub enum SwapInstruction {
     /// 2. `[]` An array of token accounts, owned by $authority depending on N_COINS.
     /// 3. `[]` The pool token mint, owned by $authority.
     GetVirtualPrice {},
+    /// Sets an admin setting
+    ///
+    /// Accounts expected:
+    ///
+    /// Single Signer
+    ///
+    /// 0. `[writable]` Swap state account
+    /// 1. `[T_owned by Admin NFT owner]` Admin token account
+    /// 2. `[signer]` The admin NFT owner or delegate
+    SetAdminSetting { admin_setting: AdminSetting },
 }
 
 impl SwapInstruction {
@@ -206,6 +227,42 @@ impl SwapInstruction {
                 }
             }
             5 => Self::GetVirtualPrice {},
+            100..=199 => Self::SetAdminSetting {
+                admin_setting: match tag {
+                    100 => {
+                        let (enabled, _) = Self::unpack_u8(rest)?;
+                        AdminSetting::SetSwapEnabled(utils::u8_to_bool(enabled)?)
+                    }
+                    101 => {
+                        let (enabled, _) = Self::unpack_u8(rest)?;
+                        AdminSetting::SetAddLiquidityEnabled(utils::u8_to_bool(enabled)?)
+                    }
+                    102 => {
+                        let (amplification_coefficient, _) = Self::unpack_u64(rest)?;
+                        AdminSetting::SetAmplificationCoefficient(amplification_coefficient)
+                    }
+                    103 => {
+                        let (fee_numerator, _) = Self::unpack_u64(rest)?;
+                        AdminSetting::SetFeeNumerator(fee_numerator)
+                    }
+                    104 => {
+                        let (admin_fee_numerator, _) = Self::unpack_u64(rest)?;
+                        AdminSetting::SetAdminFeeNumerator(admin_fee_numerator)
+                    }
+                    105 => {
+                        let mut precision_multipliers =
+                            Vec::with_capacity(PoolParameter::MAX_N_COINS);
+                        let (length, rest) = Self::unpack_u32(rest)?;
+                        for i in 0..length as usize {
+                            let (_amount, rest) = rest.split_at(i * 8);
+                            let (precision_multiplier, _rest) = Self::unpack_u64(rest)?;
+                            precision_multipliers.push(precision_multiplier);
+                        }
+                        AdminSetting::SetPrecisionMultipliers(precision_multipliers)
+                    }
+                    _ => return Err(ProgramError::InvalidInstructionData),
+                },
+            },
             _ => return Err(ProgramError::InvalidAccountData.into()),
         })
     }
@@ -287,6 +344,38 @@ impl SwapInstruction {
                 buf.extend_from_slice(&minimum_out_amount.to_le_bytes());
             }
             Self::GetVirtualPrice {} => buf.push(5),
+            Self::SetAdminSetting {
+                admin_setting: setting,
+            } => match setting {
+                AdminSetting::SetSwapEnabled(x) => {
+                    buf.push(100);
+                    buf.push(*x as u8)
+                }
+                AdminSetting::SetAddLiquidityEnabled(x) => {
+                    buf.push(101);
+                    buf.push(*x as u8)
+                }
+                AdminSetting::SetAmplificationCoefficient(amplification_coefficient) => {
+                    buf.push(102);
+                    buf.extend_from_slice(&amplification_coefficient.to_le_bytes());
+                }
+                AdminSetting::SetFeeNumerator(fee_numerator) => {
+                    buf.push(103);
+                    buf.extend_from_slice(&fee_numerator.to_le_bytes());
+                }
+                AdminSetting::SetAdminFeeNumerator(admin_fee_numerator) => {
+                    buf.push(104);
+                    buf.extend_from_slice(&admin_fee_numerator.to_le_bytes());
+                }
+                AdminSetting::SetPrecisionMultipliers(precision_multipliers) => {
+                    buf.push(105);
+
+                    buf.extend_from_slice(&(precision_multipliers.len() as u32).to_le_bytes());
+                    for precision_multiplier in precision_multipliers.iter() {
+                        buf.extend_from_slice(&precision_multiplier.to_le_bytes());
+                    }
+                }
+            },
         }
         buf
     }
@@ -543,5 +632,25 @@ pub fn exchange(
             minimum_out_amount,
         }
         .pack(),
+    })
+}
+
+pub fn set_admin_setting(
+    program_id: &Pubkey,
+    swap_account_address: &Pubkey,
+    admin_token_account_address: &Pubkey,
+    nft_owner_address: &Pubkey,
+    admin_setting: AdminSetting,
+) -> Result<Instruction, ProgramError> {
+    check_program_account(&program_id)?;
+
+    Ok(Instruction {
+        program_id: *program_id,
+        accounts: vec![
+            AccountMeta::new(*swap_account_address, false),
+            AccountMeta::new_readonly(*admin_token_account_address, false),
+            AccountMeta::new_readonly(*nft_owner_address, true),
+        ],
+        data: SwapInstruction::SetAdminSetting { admin_setting }.pack(),
     })
 }

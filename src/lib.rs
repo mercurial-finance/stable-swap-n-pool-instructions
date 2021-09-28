@@ -1,6 +1,6 @@
+pub mod error;
 pub mod instruction;
 pub mod state;
-pub mod error;
 pub mod utils;
 
 use solana_program::{entrypoint::ProgramResult, program_error::ProgramError, pubkey::Pubkey};

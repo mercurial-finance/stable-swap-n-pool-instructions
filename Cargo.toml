@@ -1,5 +1,5 @@
 [package]
-name = "mercurial_stable_swap_n_pool_instructions"
+name = "mercurial-stable-swap-n-pool-instructions"
 version = "0.1.0"
 edition = "2018"
 license = "WTFPL"

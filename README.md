@@ -10,3 +10,5 @@ This is our preliminary release of our [Mercurial Finance](https://mercurial.fin
 * pSOL 2-Pool (pSOL-SOL): `SoLw5ovBPNfodtAbxqEKHLGppyrdB4aZthdGwpfpQgi`
 * wUSD 4-Pool (USDC-wUSDC-wUSDT-wDAI): `USD42Jvem43aBSLqT83GZmvRbzAjpKBonQYBQhni7Cv`
 * stSOL 2-Pool (stSOL-SOL): `LiDoU8ymvYptqxenJ4YpcURBchn4ef63tcbdznBCKJh`
+* mSOL 2-Pool (mSOL-SOL): `MAR1zHjHaQcniE2gXsDptkyKUnNfMEsLBVcfP7vLyv7`
+* wbBUSD 4Pool (wbBUSD-wbUSDC-wbUSDT-USDC): `BUSDXyZeFXrcEkETHfgGh5wfqavmfC8ZJ8BbRP33ctaG`

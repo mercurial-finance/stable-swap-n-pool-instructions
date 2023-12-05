@@ -1,9 +1,10 @@
 [package]
 name = "mercurial_stable_swap_n_pool_instructions"
+description = "Instruction and stat to interact with the Mercurial stable swap program"
 version = "0.1.0"
 edition = "2018"
 license = "WTFPL"
-publish = false
+publish = true
 
 [dependencies]
 solana-program = "1.6.18"
